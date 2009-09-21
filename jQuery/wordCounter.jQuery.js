@@ -9,7 +9,7 @@
 (function($) {
 	/**
 	* wordCounter plugin
-	* Requres jQuery
+	* Requires jQuery
 	*
 	* @param String textElement
 	* @param String counterElement
@@ -18,12 +18,12 @@
 	*/
 	$.fn.wordCounter = function(textElement, counterElement, options){
 		var settings = jQuery.extend({
-			limit					: null,
+			limit			: null,
 			defaultNoLimitFormat	: "Word count: count%",
-			limitExceededFormat		: "Remove count% word(s)",
+			limitExceededFormat	: "Remove count% word(s)",
 			limitNotExceededFormat	: "Words left: count% ",
-			defaultSearch			: "count%",
-			showNegativeNumbers		: 0
+			defaultSearch		: "count%",
+			showNegativeNumbers	: 0
 		}, options);
 
 		// Run execute when the window loads
