@@ -1,1 +1,2 @@
+<h1>WordCounter Jquery Plugin</h1>
 jQuery plugin: wordCounter(textElement, counterElement, options)
