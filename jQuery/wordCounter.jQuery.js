@@ -1,9 +1,8 @@
 /*
 * jQuery wordCounter plugin v0.0.2
-* Source: http://peterfisher.me.uk/wordcounter.html
+* Source: http://blog.peterfisher.me.uk/code/wordcounter/
 * Author: pfwd
-* Copyright (c) 2009 peterfisher.me.uk
-* Free for all; but please leave in this comment
+* Copyright (c) 2011 peterfisher.me.uk
 *
 */
 (function($) {
