@@ -1,8 +1,8 @@
 /*
-* jQuery wordCounter plugin v0.0.2
+* jQuery wordCounter plugin v0.1.0
 * Source: http://blog.peterfisher.me.uk/code/wordcounter/
-* Author: pfwd
-* Copyright (c) 2011 peterfisher.me.uk
+* Author: Peter Fisher
+* Copyright (c) 2011 http://peterfisher.me.uk
 *
 */
 (function($) {
@@ -17,74 +17,172 @@
 	*/
 	$.fn.wordCounter = function(textElement, counterElement, options){
 		var settings = jQuery.extend({
-			limit			: null,
+			limit					: null,
 			defaultNoLimitFormat	: "Word count: count%",
-			limitExceededFormat	: "Remove count% word(s)",
+			limitExceededFormat		: "Remove count% word(s)",
 			limitNotExceededFormat	: "Words left: count% ",
-			defaultSearch		: "count%",
-			showNegativeNumbers	: 0
+			defaultSearch			: "count%",
+			showNegativeNumbers		: 0,
+			preventInput			: false
 		}, options);
-
-		// Run execute when the window loads
-		$(window).load(function () {
-			execute();
-		});
+		
+		// Private variables
+		// Has the ilimit been reached
+		var limitReached = false;
+		// Has the limit been exceeded
+		var limitExceededBy = 0;
+		// The key code which is pressed
+		var keyCode;
+		//The current word count
+		var currentCount = 0;
+		// The output displayed in the counter div
+		var counterOutput = '';
 
 		// Run execute each time the keys have been pressed
-		$('#'+textElement).keyup(function () {
-			execute();
+		$('#'+textElement).keypress(function (e) {
+			// Set the key code
+			keyCode = e.keycode;
+			// Execute the word counter
+			execute(e);
 		});
+		
 		/**
-		* Executes the logic for the plugin
-		* Generates the counter
+		* Executes the wordCounter
+		* Formats the counter div
 		* Updates the counterElement with the final counter
-		*
-		* Requres:
-		* wordCounter.countWords() 
-		* wordCounter.formatOutput()
 		*
 		* @return void
 		*/
-		function execute(){
-			var currentCount = countWords();
-			var outPutCount = 0;
-			var outPutFormat = 'Problem with word counter';
-			// Check if  this.limit param is supplied
-			if(settings.limit != null){
-				outPutCounter = settings.limit - currentCount;
-			}else{
-				// Set to default incrmental counter if limit is null
-				outPutCounter = currentCount;
+		function execute(e){
+			// Count the words
+			currentCount = countWords();
+			// Check if the limit has been reached
+			limitReached = checkLimitReached();
+			// Default output
+			output = 'There is a problem with the word counter';
+			
+			// Make sure the counter is set to zero if the 
+			// value is blank
+			if(currentCount >= 1 && $('#'+textElement).val() == '')
+			{
+				currentCount = 0;
 			}
-
-			// Check if outPutCounter is greater than 0 (and negative numbers)
-			// If it is the user has exceeded the limit
-			// Generate the outPutFormat
-			if(outPutCounter < 0 && settings.limit != null){
-				// change the negative number to a positve number and set to outPutCounter
-				if(settings.showNegativeNumbers == 0){
-					outPutCounter = outPutCounter * -1;
+			
+			// First deal with the limit being reached
+			if(limitReached)
+			{
+				// Check if the limit has been breached
+				limitExceededBy = checkLimitExceeded();
+				
+				// Stop further input
+				if(settings.preventInput === true)
+				{
+					preventFurtherInput(e);
 				}
-				outPutFormat = formatOutput(settings.limitExceededFormat, outPutCounter);
-			}else if(outPutCounter >= 0 && settings.limit != null){
-				outPutFormat = formatOutput(settings.limitNotExceededFormat, outPutCounter);
-			}else if(settings.limit == null){
-				outPutFormat = formatOutput(settings.defaultNoLimitFormat, outPutCounter);
+				
+				// Deal with any breaches to the limit
+				if(limitExceededBy > 0)
+				{
+					// Update the currentCount to be negative if required
+					if(settings.showNegativeNumbers === true)
+					{
+						currentCount = Math.abs(limitExceededBy) * -1;
+					}
+					output = formatOutput(settings.limitExceededFormat, currentCount);
+				}
+				// The limit has been reached but it hasn't been breached
+				else
+				{
+					output = formatOutput(settings.defaultNoLimitFormat, currentCount);
+				}
+				
 			}
+			// Limit has not been reached
+			else
+			{
+				output = formatOutput(settings.defaultNoLimitFormat, currentCount);
+			}
+			
+		
 			// Update the updateElement using Jquery
-			$('#'+counterElement).html(outPutFormat);
+			$('#'+counterElement).html(output);
 		}
 		/**
-		* Counts the words in the textElement
-		*
-		* @return integer
-		*/
+		 * Counts the words in the textElement
+		 *
+		 * @return integer
+		 */
 		function countWords(){
 			var counter = 0;
 			// Replace the spaces at the start of the string /^\s* and all the spaces at the end \s*$
 			// while keeping those in-between.
 			counter = $('#'+textElement).val().replace(/^\s*|\s*$/g,'');
 			return counter.split(/\s+/).length;
+		}
+		
+		/**
+		 * Checks if the limit has been reached
+		 *
+		 * @return boolean
+		 */
+		function checkLimitReached()
+		{
+			var hasBeenReached = false;
+			if(settings.limit == null)
+			{
+				return hasBeenReached;
+			}
+			
+			if(currentCount >= settings.limit)
+			{
+				hasBeenReached = true;
+			}
+			
+			return hasBeenReached;
+		}
+		
+		/**
+		 * Checks if the limit has been exceeded
+		 *
+		 * @return integer of how much the limit has been exceeded
+		 */
+		function checkLimitExceeded()
+		{
+			if(!limitReached)
+			{
+				return 0;
+			}
+			
+			if(currentCount >= settings.limit)
+			{
+				exccededBy = currentCount - settings.limit;
+			}
+			
+			return exccededBy;
+		}
+	
+		/**
+		 * Turns of any furhter input unless the backspace key is pressed
+		 * - KeyCode 8
+		 *
+		 * @return boolean
+		 */
+		function preventFurtherInput(e)
+		{
+			if(window.event) 
+			 {
+				keycode = window.event.keyCode;
+			 }
+			 else
+			 {
+				keycode = e.which;
+			 }
+			 
+			if((keycode != 8))
+			{
+				e.preventDefault();
+			}
+					
 		}
 		/**
 		* Formats and returns output for the counter
